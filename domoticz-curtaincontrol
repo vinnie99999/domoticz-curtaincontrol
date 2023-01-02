@@ -1,0 +1,107 @@
+return {
+	on = {
+		devices = {
+            'Gordijn_Voor_Rechts',
+            'Gordijn_Voor_Links',
+            'Gordijn_Achter_Rechts',
+            'Gordijn_Achter_Links',
+	    },
+	},
+
+    logging =   {       level   =   domoticz.LOG_INFO,                  -- switch to LOG_INFO when results are OK 
+                        marker  =   "Marker LOG Gordijn" },                                           
+
+-- Sample logging
+--domoticz.log("Button pressed (" .. domoticz.devices('Gordijn_Achter_Links').name .. " -> " .. domoticz.devices('Gordijn_Achter_Links').state .. ")");
+
+    execute = function(domoticz, gordijn)
+        triggereddevice = gordijn.name
+        triggeredstate = gordijn.state
+
+    local varOPEN = ("_OPEN")
+    local varDICHT = ("_DICHT")
+
+-- Gordijn Achter Links OPEN
+--    if (triggereddevice == 'Gordijn_Achter_Links') then
+        local gordijndicht = domoticz.devices(triggereddevice .. varDICHT)
+        local gordijnopen = domoticz.devices(triggereddevice .. varOPEN)
+
+        
+        domoticz.log("Gordijn State:")
+        domoticz.log(gordijn.name)
+        domoticz.log(gordijn.state)
+        
+        domoticz.log("Gordijn details Dicht")
+        domoticz.log(gordijndicht.name)
+        domoticz.log(gordijndicht.state)
+        
+        domoticz.log("Gordijn details Open")
+        domoticz.log(gordijnopen.name)
+        domoticz.log(gordijnopen.state)
+        
+        --domoticz.log("Button pressed (" .. gordijn.name .. " -> " .. gordijn.state .. ")");
+        --1: Dummy switch gordijn stopped is pressed. Stop all relays
+        if (gordijn.state == 'Stopped') then
+            domoticz.log("if hit at Stop")
+            if (gordijndicht.state == 'On') then
+                -- Stop Gordijn relay Dicht wanneer deze in is geschakeld.
+                gordijndicht.switchOff()
+            else
+                domoticz.log("Gordijn Relay Dicht is al gestopt")
+            end
+            
+            if (gordijnopen.state == 'On') then
+                -- Stop Gordijn relay Open wanneer deze in is geschakeld.
+                gordijnopen.switchOff()
+            else
+                domoticz.log("Gordijn Relay Open is al gestopt")
+            end
+        end
+       
+        --2: Dummy switch gordijn dicht is pressed. Stop all relays
+        if (gordijn.state == 'Closed') then
+            domoticz.log("if hit at On")
+            if (gordijnopen.state == 'On') then
+                -- Stop Gordijn relay Open wanneer deze in is geschakeld. Anders kan het gordijn niet open of dicht.
+                gordijnopen.switchOff()
+            else
+                domoticz.log("Gordijn Relay Open is al gestopt")
+            end
+            
+            if (gordijndicht.state == 'On') then
+                -- Stop Gordijn relay Dicht wanneer deze in is geschakeld. Als het relay is uitgeschakeld wordt deze opnieuw ingeschakeld om er zeker van te zijn dat het gordijn dicht gaat.
+                gordijndicht.switchOff()
+            else
+                domoticz.log("Gordijn Relay Dicht is al gestopt")
+            end
+                
+            -- Send command. Gordijn wordt dicht gedaan.
+            gordijndicht.switchOn()
+        end
+
+            
+        --3: Dummy switch gordijn open is pressed. Stop all relays
+        if (gordijn.state == 'Open') then
+            domoticz.log("if hit at Off")
+            if (gordijnopen.state == 'On') then
+                -- Stop Gordijn relay Open wanneer deze in is geschakeld. Anders kan het gordijn niet open of dicht.
+                gordijnopen.switchOff()
+            else
+                domoticz.log("Gordijn Relay Open is al gestopt")
+            end
+            
+            if (gordijndicht.state == 'On') then
+                -- Stop Gordijn relay Dicht wanneer deze in is geschakeld. Als het relay is uitgeschakeld wordt deze opnieuw ingeschakeld om er zeker van te zijn dat het gordijn dicht gaat.
+                gordijndicht.switchOff()
+            else
+                domoticz.log("Gordijn Relay Dicht is al gestopt")
+            end
+    
+            -- Send command. Gordijn wordt open gedaan.")
+            gordijnopen.switchOn()      
+        end
+     
+    gordijndicht.switchOff().afterSec(15)
+    gordijnopen.switchOff().afterSec(15)
+end
+}
